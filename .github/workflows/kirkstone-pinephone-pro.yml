@@ -1,0 +1,103 @@
+name: kirkstone-pinephone-pro
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  pinephone-pro:
+  
+    env:
+      YOCTO_VERSION: 4.0
+      YOCTO_BRANCH: kirkstone
+      MACHINE: rockchip-rk3399-sapphire-excavator
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/pinephone-pro:/home/dev/sstate:Z
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: ''
+
+      - name: Fetch poky
+        run: |
+          [ -d ../pinephone-pro ] || mkdir -p ../pinephone-pro
+          cd ../pinephone-pro
+          pwd
+          ls -la
+          rm -rf poky meta-openembedded meta-clang
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b ${{ env.YOCTO_BRANCH }}-clang12 --single-branch https://github.com/kraj/meta-clang.git &
+          wait
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../pinephone-pro
+        run: |
+          rm -rf build/conf
+          . ./poky/oe-init-build-env
+          echo '***************************************'
+          echo 'MACHINE = "${{ env.MACHINE }}"'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " x11 wayland opengl"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers show-layers
+          bitbake-layers add-layer \
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-python \
+              ../meta-openembedded/meta-networking \
+              ../meta-clang \
+              ../../meta-rockchip
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+
+      - name: Build core-image-minimal
+        shell: bash
+        working-directory: ../pinephone-pro
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake levinboot
+          bitbake core-image-minimal
