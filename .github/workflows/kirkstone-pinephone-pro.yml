@@ -99,5 +99,5 @@ jobs:
         working-directory: ../pinephone-pro
         run: |
           . ./poky/oe-init-build-env
-          bitbake levinboot
+          # bitbake levinboot
           bitbake core-image-minimal
