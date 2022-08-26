@@ -71,8 +71,8 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " x11 wayland opengl"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit X11"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
