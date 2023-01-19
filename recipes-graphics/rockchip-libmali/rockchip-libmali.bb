@@ -12,7 +12,7 @@ inherit freeze-rev local-git
 SRC_URI = " \
 	git://github.com/JeffyCN/mirrors.git;protocol=https;branch=libmali; \
 "
-SRCREV = "05607dabfc9d1157073ce459d8c9c0d8b85b5733"
+SRCREV = "309268f7a34ca0bba0ab94a0b09feb0191c77fb8"
 S = "${WORKDIR}/git"
 
 DEPENDS = "coreutils-native libdrm"
