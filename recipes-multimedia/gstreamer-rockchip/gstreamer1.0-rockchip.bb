@@ -12,9 +12,9 @@ LICENSE = "LGPL-2.1-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c"
 DEPENDS:append = " gstreamer1.0-plugins-base"
 
-inherit freeze-rev local-git
+inherit local-git
 
-SRCREV = "71900e3e0c47f6191b44be9ecd37ffc194af6687"
+SRCREV = "2ed1e68b0aa77728b1d493344d8e62a04b1b64e0"
 SRC_URI = "git://github.com/JeffyCN/mirrors.git;protocol=https;branch=gstreamer-rockchip;"
 
 S = "${WORKDIR}/git"

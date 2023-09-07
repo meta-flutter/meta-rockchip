@@ -4,7 +4,7 @@
 require recipes-kernel/linux/linux-yocto.inc
 require linux-rockchip.inc
 
-inherit freeze-rev local-git
+inherit local-git
 
 SRCREV = "72de5a560a44fb81549f1da325a1b3e323a7aaf7"
 SRC_URI = " \
@@ -21,3 +21,8 @@ SRC_URI:append = " ${@bb.utils.contains('IMAGE_FSTYPES', 'ext4', \
 		   'file://${THISDIR}/files/ext4.cfg', \
 		   '', \
 		   d)}"
+
+do_patch:append() {
+	sed -i 's/-I\($(BCMDHD_ROOT)\)/-I$(srctree)\/\1/g' \
+		${S}/drivers/net/wireless/rockchip_wlan/rkwifi/bcmdhd/Makefile
+}

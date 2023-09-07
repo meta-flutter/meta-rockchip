@@ -7,9 +7,9 @@ SECTION = "kernel"
 LICENSE = "LICENSE.rockchip"
 LIC_FILES_CHKSUM = "file://${RKBASE}/licenses/LICENSE.rockchip;md5=d63890e209bf038f44e708bbb13e4ed9"
 
-inherit freeze-rev local-git
+inherit local-git
 
-SRCREV = "54d05e00e73a91c14c86005e86fff45fa094203e"
+SRCREV = "fe32b4846ce7fc14a73a9922e397b906fadd7868"
 SRC_URI = "git://github.com/JeffyCN/mirrors.git;protocol=https;branch=rkwifibt;"
 
 S = "${WORKDIR}/git"
@@ -32,7 +32,8 @@ PACKAGES =+ " \
 	${PN}-ap6255-wifi \
 	${PN}-ap6255-bt \
 	${PN}-ap6275p-wifi \
-	${PN}-ap6275p-bt \
+	${PN}-ap6275s-wifi \
+	${PN}-ap6275-bt \
 	${PN}-ap6354-wifi \
 	${PN}-ap6354-bt \
 	${PN}-ap6356-wifi \
@@ -54,7 +55,7 @@ FILES:${PN}-ap6212a1-wifi = " \
 	lib/firmware/nvram_ap6212a.txt \
 "
 FILES:${PN}-ap6212a1-bt = " \
-	lib/firmware/BCM43430A1.hcd \
+	lib/firmware/BCM4343A1.hcd \
 "
 
 FILES:${PN}-ap6236-wifi = " \
@@ -82,7 +83,14 @@ FILES:${PN}-ap6275p-wifi = " \
 	lib/firmware/fw_bcm43752a2_pcie_ag.bin \
 	lib/firmware/nvram_AP6275P.txt \
 "
-FILES:${PN}-ap6275p-bt = " \
+FILES:${PN}-ap6275s-wifi = " \
+	lib/firmware/fw_bcm43752a2_ag_apsta.bin \
+	lib/firmware/fw_bcm43752a2_ag_mfg.bin \
+	lib/firmware/clm_bcm43752a2_ag.blob \
+	lib/firmware/fw_bcm43752a2_ag.bin \
+	lib/firmware/nvram_ap6275s.txt \
+"
+FILES:${PN}-ap6275-bt = " \
 	lib/firmware/BCM4362A2.hcd \
 "
 

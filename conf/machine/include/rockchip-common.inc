@@ -15,9 +15,12 @@ KERNEL_IMAGETYPE ?= "Image"
 KBUILD_DEFCONFIG ?= "rockchip_linux_defconfig"
 MACHINEOVERRIDES .= ":rockchip"
 
-PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot"
+PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-rockchip"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-rockchip"
+
+ROCKCHIP_KERNEL_COMPRESSED ?= "1"
+ROCKCHIP_KERNEL_IMAGES ?= "1"
 
 # Prefer using Rockchip BSP kernel 4.4
 #PREFERRED_VERSION_linux-rockchip ?= "4.19%"
@@ -53,7 +56,6 @@ PREFERRED_RPROVIDER_lib32-initd-functions = "lib32-initscripts"
 export RK_ROOTDEV_UUID ?= "614e0000-0000-4b53-8000-1d28000054a9"
 export RK_PARTITION_GROW ?= "1"
 
-RK_USE_COMPRESSED_KERNEL ?= "1"
 RDEPENDS:${KERNEL_PACKAGE_NAME}-base = ""
 
 IMAGE_FSTYPES:remove = "iso live"
@@ -85,9 +87,6 @@ RK_POST_ROOTFS_SCRIPTS ?= ""
 RK_OVERLAY_DIRS ?= ""
 BB_BASEHASH_IGNORE_VARS:append = " RK_POST_ROOTFS_SCRIPTS RK_OVERLAY_DIRS"
 
-# <fslabel:mountpoint> e.g. "oem:/oem userdata:/userdata"
-RK_EXTRA_VOLUMES ?= ""
-
 ROOTFS_POSTPROCESS_COMMAND:append = " do_post_rootfs;"
 do_rootfs[depends] += "rsync-native:do_populate_sysroot"
 do_post_rootfs() {
@@ -95,7 +94,7 @@ do_post_rootfs() {
 	for dir in vendor system;do
 		firmware_dir=${IMAGE_ROOTFS}/${dir}/etc/
 		mkdir -p ${firmware_dir}
-		ln -sf /lib/firmware ${firmware_dir}
+		ln -rsf ${IMAGE_ROOTFS}/lib/firmware ${firmware_dir}
 	done
 
 	for overlay in ${RK_OVERLAY_DIRS};do
@@ -192,18 +191,16 @@ gen_rkupdateimg() {
 	echo "bootloader loader.bin" >> "${OUT}"
 	echo "parameter parameter" >> "${OUT}"
 	grep -o "([^)^:]*" parameter | tr -d "(" | while read NAME;do
-		echo -n "${NAME} " >> "${OUT}"
 		case "${NAME}" in
-			uboot-env)
-				echo "uboot.env" >> "${OUT}"
-				;;
-			root*|system*)
-				echo "rootfs.img" >> "${OUT}"
-				;;
-			*)
-				echo "${NAME}.img" >> "${OUT}"
-				;;
+			uboot-env) IMAGE="uboot.env" ;;
+			backup) echo "backup RESERVED" >> "${OUT}"; continue ;;
+			system|system_[ab]) IMAGE="rootfs.img" ;;
+			*_a) IMAGE="${NAME%_a}.img" ;;
+			*_b) IMAGE="${NAME%_b}.img" ;;
+			*) IMAGE="${NAME}.img" ;;
 		esac
+
+		[ ! -r "$IMAGE" ] || echo "$NAME $IMAGE" >> "${OUT}"
 	done
 
 	PSEUDO_DISABLED=1
